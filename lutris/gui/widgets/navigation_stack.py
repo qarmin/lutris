@@ -38,17 +38,17 @@ class NavigationStack(Gtk.Stack):
         self.back_allowed = True
         self.cancel_allowed = True
 
-    def add_named_factory(self, name, factory):
+    def add_named_factory(self, name, factory) -> None:
         """This specifies the factory functioin for the page named;
         this function takes no arguments, but returns the page's widget."""
         self.page_factories[name] = factory
 
-    def set_back_allowed(self, is_allowed=True):
+    def set_back_allowed(self, is_allowed: bool=True) -> None:
         """This turns the back button off, or back on."""
         self.back_allowed = is_allowed
         self._update_back_button()
 
-    def set_cancel_allowed(self, is_allowed=True):
+    def set_cancel_allowed(self, is_allowed:bool=True) -> None:
         """This turns the back button off, or back on."""
         self.cancel_allowed = is_allowed
         self._update_back_button()
@@ -120,7 +120,7 @@ class NavigationStack(Gtk.Stack):
         navigated = page_presenter == navigated_presenter
         self._go_to_page(page_presenter, navigated, Gtk.StackTransitionType.NONE)
 
-    def _go_to_page(self, page_presenter, navigated, transition_type):
+    def _go_to_page(self, page_presenter, navigated, transition_type) -> None:
         """Switches to a page. If 'navigated' is True, then when you navigate
         away from this page, it can go on the navigation stack. It should be
         False for 'temporary' pages that are not part of normal navigation."""

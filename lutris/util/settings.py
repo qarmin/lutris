@@ -7,7 +7,7 @@ from lutris.util.log import logger
 class SettingsIO:
     """ConfigParser abstraction."""
 
-    def __init__(self, config_file):
+    def __init__(self, config_file: str) -> None:
         self.config_file = config_file
         self.config = configparser.ConfigParser()
         if os.path.exists(self.config_file):
@@ -18,7 +18,7 @@ class SettingsIO:
             except UnicodeDecodeError as ex:
                 logger.error("Some invalid characters are preventing the setting file from loading properly: %s", ex)
 
-    def read_setting(self, key, default="", section="lutris"):
+    def read_setting(self, key: str, default: str="", section: str="lutris") -> str:
         """Read a setting from the config file
 
         Params:
@@ -31,7 +31,7 @@ class SettingsIO:
         except (configparser.NoOptionError, configparser.NoSectionError):
             return default
 
-    def read_bool_setting(self, key: str, default: bool = False, section="lutris") -> bool:
+    def read_bool_setting(self, key: str, default: bool = False, section:str="lutris") -> bool:
         text = self.read_setting(key, "", section=section).casefold()
         if text == "true":
             return True

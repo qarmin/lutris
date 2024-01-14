@@ -231,7 +231,7 @@ def migrate(table, schema):
     return migrated_fields
 
 
-def syncdb():
+def syncdb() -> None:
     """Update the database to the current version, making necessary changes
     for backwards compatibility."""
     for table_name, table_data in DATABASE.items():

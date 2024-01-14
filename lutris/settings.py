@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from gettext import gettext as _
+from typing import Optional
 
 from gi.repository import GLib
 
@@ -71,7 +72,7 @@ read_bool_setting = sio.read_bool_setting
 write_setting = sio.write_setting
 
 
-def get_lutris_directory_settings(directory):
+def get_lutris_directory_settings(directory: Optional[str]) -> dict:
     """Reads the 'lutris.json' file in 'directory' and returns it as
     a (new) dictionary. The file is missing, unreadable, unparseable, or not a dict,
     this returns an empty dict instead."""

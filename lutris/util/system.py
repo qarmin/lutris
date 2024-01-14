@@ -12,6 +12,7 @@ import zipfile
 from collections import defaultdict
 from gettext import gettext as _
 from pathlib import Path
+from typing import Optional, List, Dict, Set
 
 from gi.repository import Gio, GLib
 
@@ -56,7 +57,7 @@ def get_environment():
     }
 
 
-def execute(command, env=None, cwd=None, quiet=False, shell=False, timeout=None):
+def execute(command: List[str], env: Optional[dict]=None, cwd:Optional[str]=None, quiet: bool=False, shell: bool=False, timeout:Optional[int]=None) -> str:
     """
        Execute a system command and return its standard output; standard error is discarded.
 
@@ -393,16 +394,16 @@ def delete_folder(path):
     return True
 
 
-def create_folder(path):
+def create_folder(path: Optional[str]) -> Optional[str]:
     """Creates a folder specified by path"""
     if not path:
-        return
+        return None
     path = os.path.expanduser(path)
     os.makedirs(path, exist_ok=True)
     return path
 
 
-def list_unique_folders(folders):
+def list_unique_folders(folders: List[str]):
     """Deduplicate directories with the same Device.Inode"""
     unique_dirs = {}
     for folder in folders:
@@ -413,7 +414,7 @@ def list_unique_folders(folders):
     return unique_dirs.values()
 
 
-def is_removeable(path, system_config):
+def is_removeable(path: str, system_config) -> bool:
     """Check if a folder is safe to remove (not system or home, ...). This needs the
     system config dict so it can check the default game path, too."""
     if not path_exists(path):
@@ -438,7 +439,7 @@ def is_removeable(path, system_config):
     return True
 
 
-def fix_path_case(path):
+def fix_path_case(path: str) -> str:
     """Do a case insensitive check, return the real path with correct case. If the path is
     not for a real file, this corrects as many components as do exist."""
     if not path or os.path.exists(path) or not path.startswith("/"):
@@ -467,7 +468,7 @@ def fix_path_case(path):
     return path
 
 
-def get_pids_using_file(path):
+def get_pids_using_file(path) -> Set[str]:
     """Return a set of pids using file `path`."""
     if not os.path.exists(path):
         logger.error("Can't return PIDs using non existing file: %s", path)
@@ -481,7 +482,7 @@ def get_pids_using_file(path):
     return set(fuser_output.split())
 
 
-def reverse_expanduser(path):
+def reverse_expanduser(path: str) -> str:
     """Replace '/home/username' with '~' in given path."""
     if not path:
         return path
@@ -492,7 +493,7 @@ def reverse_expanduser(path):
     return path
 
 
-def path_contains(parent, child, resolve_symlinks=False):
+def path_contains(parent: Optional[str], child:Optional[str], resolve_symlinks: bool=False) -> bool:
     """Tests if a child path is actually within a parent directory
     or a subdirectory of it. Resolves relative paths, and ~, and
     optionally symlinks."""
@@ -532,7 +533,7 @@ def path_exists(path: str, check_symlinks: bool = False, exclude_empty: bool = F
     return False
 
 
-def create_symlink(source: str, destination: str):
+def create_symlink(source: str, destination: str) -> None:
     """Create a symlink from source to destination.
     If there is already a symlink at the destination and it is broken, it will be deleted."""
     is_directory = os.path.isdir(source)
@@ -545,7 +546,7 @@ def create_symlink(source: str, destination: str):
         logger.error("Failed linking %s to %s", source, destination)
 
 
-def reset_library_preloads():
+def reset_library_preloads() -> None:
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
         if os.environ.get(key):
@@ -555,7 +556,7 @@ def reset_library_preloads():
                 logger.error("Failed to delete environment variable %s", key)
 
 
-def get_existing_parent(path):
+def get_existing_parent(path: str) -> Optional[str]:
     """Return the 1st existing parent for a folder (or itself if the path
     exists and is a directory). returns None, when none of the parents exists.
     """
@@ -566,7 +567,7 @@ def get_existing_parent(path):
     return get_existing_parent(os.path.dirname(path))
 
 
-def update_desktop_icons():
+def update_desktop_icons() -> None:
     """Update Icon for GTK+ desktop manager
     Other desktop manager icon cache commands must be added here if needed
     """
@@ -575,7 +576,7 @@ def update_desktop_icons():
         execute(["gtk-update-icon-cache", "-tf", os.path.join(settings.RUNTIME_DIR, "icons/hicolor")], quiet=True)
 
 
-def get_disk_size(path):
+def get_disk_size(path: str) -> int:
     """Return the disk size in bytes of a folder"""
     total_size = 0
     for base, _dirs, files in os.walk(path):
@@ -587,7 +588,7 @@ def get_disk_size(path):
     return total_size
 
 
-def get_locale_list():
+def get_locale_list() -> List[str]:
     """Return list of available locales"""
     try:
         with subprocess.Popen(['locale', '-a'], stdout=subprocess.PIPE) as locale_getter:
@@ -602,12 +603,12 @@ def get_locale_list():
     return locales
 
 
-def get_running_pid_list():
+def get_running_pid_list() -> List[int]:
     """Return the list of PIDs from processes currently running"""
     return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
 
 
-def get_mounted_discs():
+def get_mounted_discs() -> List[str]:
     """Return a list of mounted discs and ISOs
 
     :rtype: list of Gio.Mount
@@ -628,7 +629,7 @@ def get_mounted_discs():
     return drives
 
 
-def find_mount_point(path):
+def find_mount_point(path: str) -> str:
     """Return the mount point a file is located on"""
     path = os.path.abspath(path)
     while not os.path.ismount(path):
@@ -636,7 +637,7 @@ def find_mount_point(path):
     return path
 
 
-def set_keyboard_layout(layout):
+def set_keyboard_layout(layout) -> None:
     setxkbmap_command = ["setxkbmap", "-model", "pc101", layout, "-print"]
     xkbcomp_command = ["xkbcomp", "-", os.environ.get("DISPLAY", ":0")]
     with subprocess.Popen(xkbcomp_command, stdin=subprocess.PIPE) as xkbcomp:
@@ -648,7 +649,7 @@ def set_keyboard_layout(layout):
 _vulkan_gpu_names = {}
 
 
-def get_vulkan_gpu_name(icd_files, use_dri_prime):
+def get_vulkan_gpu_name(icd_files, use_dri_prime: bool):
     """Retrieves the GPU name associated with a set of ICD files; this does not generate
     this data as it can be quite slow, and we use this in the UI where we do not want to
     freeze. We load the GPU names in the background, until they are ready this returns
@@ -657,7 +658,7 @@ def get_vulkan_gpu_name(icd_files, use_dri_prime):
     return _vulkan_gpu_names.get(key, _("GPU Info Not Ready"))
 
 
-def load_vulkan_gpu_names(use_dri_prime):
+def load_vulkan_gpu_names(use_dri_prime: bool) -> None:
     """Runs threads to load the GPU data from vulkan info for each ICD file set,
     and one for the default 'unspecified' info."""
 
@@ -670,7 +671,7 @@ def load_vulkan_gpu_names(use_dri_prime):
         logger.exception("Failed to preload Vulkan GPU Names: %s", ex)
 
 
-def _load_vulkan_gpu_name(icd_files, use_dri_prime):
+def _load_vulkan_gpu_name(icd_files, use_dri_prime: bool) -> None:
     """Runs vulkaninfo to determine the default and DRI_PRIME gpu if available,
     returns 'Not Found' if the GPU is not found or 'Unknown GPU' if vulkaninfo
     is not available or an error occurs trying to use it."""
@@ -699,7 +700,7 @@ def _load_vulkan_gpu_name(icd_files, use_dri_prime):
         # AMD Radeon Pro W6800 (RADV NAVI21) -> AMD Radeon Pro W6800
         return re.sub(r"\s*\(.*?\)", "", result)
 
-    def get_name():
+    def get_name() -> str:
         try:
             if not shutil.which("vulkaninfo"):
                 logger.warning("vulkaninfo not available, unable to list GPUs")
@@ -723,11 +724,11 @@ def _load_vulkan_gpu_name(icd_files, use_dri_prime):
     _vulkan_gpu_names[key] = get_name()
 
 
-def get_vk_icd_file_sets():
+def get_vk_icd_file_sets() -> Dict[str, List[str]]:
     """Returns the vulkan ICD files in a default-dict of lists; the keys are the separate
     drivers, 'intel', 'amdradv', 'amdvlkpro', 'amdvlk', 'nvidia', and 'unknown'."""
 
-    def get_vk_icd_files():
+    def get_vk_icd_files() -> List[str]:
         """Returns available vulkan ICD files in the same search order as vulkan-loader,
         but in a single list"""
         all_icd_search_paths = []

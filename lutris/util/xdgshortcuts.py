@@ -14,13 +14,13 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 
-def get_lutris_executable():
+def get_lutris_executable() -> str:
     if LINUX_SYSTEM.is_flatpak():
         return "flatpak run net.lutris.Lutris"
     return "lutris"
 
 
-def get_xdg_entry(directory):
+def get_xdg_entry(directory: str) -> str:
     """Return the path for specific user folders"""
     special_dir = {
         "DESKTOP": GLib.UserDirectory.DIRECTORY_DESKTOP,

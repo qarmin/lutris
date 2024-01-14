@@ -1,5 +1,5 @@
 import os
-from typing import Callable
+from typing import Callable, Optional
 
 from gi.repository import Gio, GLib, GObject
 
@@ -18,8 +18,8 @@ class TrashPortal(GObject.Object):
     ErrorFunction = Callable[[Exception], None]
 
     def __init__(self, file_path: str,
-                 completion_function: CompletionFunction = None,
-                 error_function: ErrorFunction = None):
+                 completion_function: Optional[CompletionFunction] = None,
+                 error_function: Optional[ErrorFunction] = None):
         super().__init__()
         self.file_path = file_path
         self.completion_function = completion_function
@@ -35,18 +35,18 @@ class TrashPortal(GObject.Object):
             self._new_for_bus_cb,
         )
 
-    def _new_for_bus_cb(self, obj, result):
+    def _new_for_bus_cb(self, obj, result) -> None:
         proxy = obj.new_for_bus_finish(result)
         if proxy:
             self._dbus_proxy = proxy
             self.trash_file()
 
-    def trash_file(self):
+    def trash_file(self) -> None:
         try:
             file_handle = os.open(self.file_path, os.O_RDONLY)
             fds_in = Gio.UnixFDList.new()
             fds_in.append(file_handle)
-            self._dbus_proxy.call_with_unix_fd_list(
+            self._dbus_proxy.call_with_unix_fd_list( # type: ignore
                 "TrashFile",
                 GLib.Variant.new_tuple(
                     GLib.Variant.new_handle(0),
@@ -60,7 +60,7 @@ class TrashPortal(GObject.Object):
         except Exception as ex:
             self.report_error(ex)
 
-    def _call_cb(self, obj, result):
+    def _call_cb(self, obj, result) -> None:
         values = obj.call_finish(result)
         if values:
             result = values[0]
@@ -75,6 +75,6 @@ class TrashPortal(GObject.Object):
         else:
             logger.exception("Failed to trash folder %s: %s", self.file_path, error)
 
-    def report_completion(self):
+    def report_completion(self) -> None:
         if self.completion_function:
             schedule_at_idle(self.completion_function)

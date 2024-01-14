@@ -164,7 +164,7 @@ def _get_magic_type(mime):
     return i
 
 
-def from_file(filename, mime=False):
+def from_file(filename: str, mime=False) -> str:
     """"
     Accepts a filename and returns the detected filetype.  Return
     value is the mimetype if mime=True, otherwise a human readable
@@ -177,7 +177,7 @@ def from_file(filename, mime=False):
     return m.from_file(filename)
 
 
-def from_buffer(buffer, mime=False):
+def from_buffer(buffer, mime=False) -> str:
     """
     Accepts a binary string and returns the detected filetype.  Return
     value is the mimetype if mime=True, otherwise a human readable
@@ -190,7 +190,7 @@ def from_buffer(buffer, mime=False):
     return m.from_buffer(buffer)
 
 
-def from_descriptor(fd, mime=False):
+def from_descriptor(fd, mime=False) -> str:
     """
     Accepts a file descriptor and returns the detected filetype.  Return
     value is the mimetype if mime=True, otherwise a human readable

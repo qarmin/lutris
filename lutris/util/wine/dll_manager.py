@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 from gettext import gettext as _
+from typing import Optional
 
 from lutris import settings
 from lutris.util import system
@@ -33,7 +34,7 @@ class DLLManager:
         self.wine_arch = arch
 
     @property
-    def versions(self):
+    def versions(self) -> list:
         """Return available versions"""
         self._versions = self.load_versions()
         if system.path_exists(self.base_dir):
@@ -43,7 +44,7 @@ class DLLManager:
         return self._versions
 
     @property
-    def version(self):
+    def version(self) -> Optional[str]:
         """Return version (latest known version if not provided)"""
         if self._version:
             return self._version
@@ -55,14 +56,15 @@ class DLLManager:
             # Put the compatible versions first, and the recommended ones before unrecommended ones.
             sorted_versions = sorted(versions, key=get_preference_key)
             return sorted_versions[0]
+        return None
 
-    def is_recommended_version(self, version):
+    def is_recommended_version(self, version) -> bool:
         """True if the version given should be usable as the default; false if it
         should not be the default, but may be selected by the user. If only
         non-recommended versions exist, we'll still default to one of them, however."""
         return True
 
-    def is_compatible_version(self, version):
+    def is_compatible_version(self, version) -> bool:
         """True if the version of the component is compatible with this Lutris. We can tell only
         once it is downloaded; if not this is always True.
 
@@ -83,7 +85,7 @@ class DLLManager:
         return True
 
     @property
-    def path(self):
+    def path(self) -> str:
         """Path to local folder containing DLLs"""
         version = self.version
         if not version:
@@ -92,7 +94,7 @@ class DLLManager:
         return os.path.join(self.base_dir, version)
 
     @property
-    def version_choices(self):
+    def version_choices(self) -> list:
         _choices = [
             (_("Manual"), "manual"),
         ]
@@ -116,15 +118,15 @@ class DLLManager:
         return versions
 
     @staticmethod
-    def is_managed_dll(dll_path):
+    def is_managed_dll(dll_path: str) -> bool:
         """Check if a given DLL path is provided by the component"""
         return False
 
-    def is_available(self):
+    def is_available(self) -> bool:
         """Return whether component is cached locally"""
-        return self.version and system.path_exists(self.path)
+        return bool(self.version) and system.path_exists(self.path)
 
-    def dll_exists(self, dll_name):
+    def dll_exists(self, dll_name: str) -> bool:
         """Check if the dll is provided by the component
         The DLL might not be available for all architectures so
         only check if one exists for the supported ones
@@ -134,7 +136,7 @@ class DLLManager:
             for arch in self.archs.values()
         )
 
-    def get_download_url(self):
+    def get_download_url(self) -> Optional[str]:
         """Fetch the download URL from the JSON version file"""
         with open(self.versions_path, "r", encoding='utf-8') as version_file:
             releases = json.load(version_file)
@@ -142,8 +144,9 @@ class DLLManager:
             if release["tag_name"] != self.version:
                 continue
             return release["assets"][0]["browser_download_url"]
+        return None
 
-    def download(self):
+    def download(self) -> bool:
         """Download component to the local cache; returns True if successful but False
         if the component could not be downloaded."""
         if self.is_available():
@@ -167,7 +170,7 @@ class DLLManager:
         os.remove(archive_path)
         return True
 
-    def enable_dll(self, system_dir, arch, dll_path):
+    def enable_dll(self, system_dir:str, arch, dll_path: str) -> None:
         """Copies dlls to the appropriate destination"""
         dll = os.path.basename(dll_path)
         if system.path_exists(dll_path):
@@ -182,7 +185,7 @@ class DLLManager:
         else:
             self.disable_dll(system_dir, arch, dll)
 
-    def disable_dll(self, system_dir, _arch, dll):  # pylint: disable=unused-argument
+    def disable_dll(self, system_dir:str, _arch, dll:str):  # pylint: disable=unused-argument
         """Remove DLL from Wine prefix"""
         wine_dll_path = os.path.join(system_dir, "%s.dll" % dll)
         if system.path_exists(wine_dll_path + ".orig"):
@@ -190,7 +193,7 @@ class DLLManager:
                 os.remove(wine_dll_path)
             shutil.move(wine_dll_path + ".orig", wine_dll_path)
 
-    def enable_user_file(self, appdata_dir, file_path, source_path):
+    def enable_user_file(self, appdata_dir: str, file_path: str, source_path: str) -> None:
         if system.path_exists(source_path):
             wine_file_path = os.path.join(appdata_dir, file_path)
             wine_file_dir = os.path.dirname(wine_file_path)
@@ -207,7 +210,7 @@ class DLLManager:
         else:
             self.disable_user_file(appdata_dir, file_path)
 
-    def disable_user_file(self, appdata_dir, file_path):
+    def disable_user_file(self, appdata_dir: str, file_path: str) -> None:
         wine_file_path = os.path.join(appdata_dir, file_path)
         # We only create a symlink; if it is a real file, it mus tbe user data.
         if system.path_exists(wine_file_path) and os.path.islink(wine_file_path):
@@ -237,7 +240,7 @@ class DLLManager:
                 filename = os.path.basename(file)
                 yield appdata_dir, file, filename
 
-    def setup(self, enable):
+    def setup(self, enable: bool) -> None:
         """Enable or disable DLLs"""
 
         # manual version only sets the dlls to native (in get_enabling_dll_overrides())
@@ -248,7 +251,7 @@ class DLLManager:
             else:
                 self.disable()
 
-    def get_enabling_dll_overrides(self):
+    def get_enabling_dll_overrides(self) -> dict:
         """Returns aa dll-override dict for the dlls in this manager; these options will
         enable the manager's dll, so call this only for enabled managers."""
         overrides = {}
@@ -260,10 +263,10 @@ class DLLManager:
 
         return overrides
 
-    def can_enable(self):
+    def can_enable(self) -> bool:
         return True
 
-    def enable(self):
+    def enable(self) -> None:
         """Enable Dlls for the current prefix"""
         if not self.is_available():
             if not self.download():
@@ -277,20 +280,20 @@ class DLLManager:
             source_path = os.path.join(self.path, filename)
             self.enable_user_file(appdata_dir, file, source_path)
 
-    def disable(self):
+    def disable(self) -> None:
         """Disable DLLs for the current prefix"""
         for system_dir, arch, dll in self._iter_dlls():
             self.disable_dll(system_dir, arch, dll)
         for appdata_dir, file, _filename in self._iter_appdata_files():
             self.disable_user_file(appdata_dir, file)
 
-    def fetch_versions(self):
+    def fetch_versions(self) -> None:
         """Get releases from GitHub"""
         if not os.path.isdir(self.base_dir):
             os.mkdir(self.base_dir)
         download_file(self.releases_url, self.versions_path, overwrite=True)
 
-    def upgrade(self):
+    def upgrade(self) -> None:
         if not self.is_available():
             versions = self.load_versions()
 

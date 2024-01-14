@@ -149,7 +149,7 @@ def run_all_checks() -> None:
     build_path_cache()
 
 
-def init_lutris():
+def init_lutris() -> None:
     """Run full initialization of Lutris"""
     runners.inject_runners(load_json_runners())
     init_dirs()

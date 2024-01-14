@@ -414,11 +414,11 @@ class Application(Gtk.Application):
         return True
 
     @staticmethod
-    def _print(command_line, string):
+    def _print(command_line, string: str) -> None:
         # Workaround broken pygobject bindings
         command_line.do_print_literal(command_line, string + "\n")
 
-    def generate_script(self, db_game, script_path):
+    def generate_script(self, db_game, script_path) -> None:
         """Output a script to a file.
         The script is capable of launching a game without the client
         """
@@ -432,7 +432,7 @@ class Application(Gtk.Application):
         game.reload_config()
         game.write_script(script_path, self.launch_ui_delegate)
 
-    def do_handle_local_options(self, options):
+    def do_handle_local_options(self, options) -> int:
         # Text only commands
 
         # Print Lutris version and exit
@@ -443,7 +443,7 @@ class Application(Gtk.Application):
             return 0
         return -1  # continue command line processes
 
-    def do_command_line(self, command_line):  # noqa: C901  # pylint: disable=arguments-differ
+    def do_command_line(self, command_line) -> int:  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
         # TODO: split into multiple methods to reduce complexity (35)

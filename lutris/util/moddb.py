@@ -10,7 +10,7 @@ MODDB_URL_MATCHER = r"^https://(www\.)?moddb\.com"
 MODDB_MIRROR_URL_MATCHER = r"^https://(www\.)?moddb\.com/downloads/mirror"
 
 
-def is_moddb_url(url):
+def is_moddb_url(url: str) -> bool:
     return re.match(MODDB_URL_MATCHER, url.lower()) is not None
 
 
@@ -38,7 +38,7 @@ class ModDB:
         if self.parse is None and self.moddb_lib is not None:
             self.parse = self.moddb_lib.parse_page
 
-    def transform_url(self, moddb_permalink_url):
+    def transform_url(self, moddb_permalink_url: str) -> str:
         # no-op in case the lib did not load
         if self.moddb_lib is None:
             return moddb_permalink_url

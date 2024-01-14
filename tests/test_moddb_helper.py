@@ -101,7 +101,7 @@ class ModDBHelperTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.helper_obj.transform_url(moddb_url)
 
-    def test_transform_url_page_type_correct_happy_path(self):
+    def test_transform_url_page_type_correct_happy_path(self) -> None:
         if SKIP_TESTS:
             return
         self \
@@ -111,7 +111,7 @@ class ModDBHelperTests(unittest.TestCase):
         transformed = self.helper_obj.transform_url(moddb_url)
         self.assertEqual(transformed, 'https://www.moddb.com/first_url')
 
-    def test_transform_url_page_type_incorrect_throws(self):
+    def test_transform_url_page_type_incorrect_throws(self) -> None:
         if SKIP_TESTS:
             return
         self \
@@ -121,7 +121,7 @@ class ModDBHelperTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.helper_obj.transform_url(moddb_url)
 
-    def test_transform_url_single_mirror_happy_path(self):
+    def test_transform_url_single_mirror_happy_path(self) -> None:
         if SKIP_TESTS:
             return
         self \
@@ -130,7 +130,7 @@ class ModDBHelperTests(unittest.TestCase):
         transformed = self.helper_obj.transform_url(moddb_url)
         self.assertEqual(transformed, 'https://www.moddb.com/first_url')
 
-    def test_transform_url_multiple_mirror_select_lowest_capacity(self):
+    def test_transform_url_multiple_mirror_select_lowest_capacity(self) -> None:
         if SKIP_TESTS:
             return
         self \
@@ -149,49 +149,49 @@ class ModDBHelperTests(unittest.TestCase):
             self.helper_obj.transform_url(moddb_url)
 
     # is_moddb_url
-    def test_is_moddb_url_has_www_success(self):
+    def test_is_moddb_url_has_www_success(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://www.moddb.com/something'
         self.assertTrue(is_moddb_url(url))
 
-    def test_is_moddb_url_no_slug_has_www_success(self):
+    def test_is_moddb_url_no_slug_has_www_success(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://www.moddb.com'
         self.assertTrue(is_moddb_url(url))
 
-    def test_is_moddb_url_no_www_success(self):
+    def test_is_moddb_url_no_www_success(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://moddb.com/something'
         self.assertTrue(is_moddb_url(url))
 
-    def test_is_moddb_url_no_slug_no_www_success(self):
+    def test_is_moddb_url_no_slug_no_www_success(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://moddb.com'
         self.assertTrue(is_moddb_url(url))
 
-    def test_is_moddb_url_other_subdomain_failure(self):
+    def test_is_moddb_url_other_subdomain_failure(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://subdomain.moddb.com/something'
         self.assertFalse(is_moddb_url(url))
 
-    def test_is_moddb_url_no_slug_other_subdomain_failure(self):
+    def test_is_moddb_url_no_slug_other_subdomain_failure(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://subdomain.moddb.com'
         self.assertFalse(is_moddb_url(url))
 
-    def test_is_moddb_url_random_domain_failure(self):
+    def test_is_moddb_url_random_domain_failure(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://somedomain.com/something'
         self.assertFalse(is_moddb_url(url))
 
-    def test_is_moddb_url_no_slug_random_domain_failure(self):
+    def test_is_moddb_url_no_slug_random_domain_failure(self) -> None:
         if SKIP_TESTS:
             return
         url = 'https://somedomain.com'

@@ -44,15 +44,15 @@ class VDFDict(dict):
                 raise ValueError("Expected data to be list of pairs or dict, got %s" % type(data))
             self.update(data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = "%s(" % self.__class__.__name__
         out += "%s)" % repr(list(self.iteritems()))
         return out
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__omap)
 
-    def _verify_key_tuple(self, key):
+    def _verify_key_tuple(self, key) -> None:
         if len(key) != 2:
             raise ValueError("Expected key tuple length to be 2, got %d" % len(key))
         if not isinstance(key[0], int):
@@ -118,18 +118,18 @@ class VDFDict(dict):
     def __iter__(self):
         return iter(self.iterkeys())
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return super().__contains__(self._normalize_key(key))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, VDFDict):
             return list(self.items()) == list(other.items())
         return False
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.__kcount.clear()
         self.__omap = []

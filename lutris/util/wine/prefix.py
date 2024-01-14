@@ -1,5 +1,6 @@
 """Wine prefix management"""
 import os
+from typing import Optional, List
 
 from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings
 from lutris.util import joypad, system
@@ -16,18 +17,18 @@ DEFAULT_DLL_OVERRIDES = {
 }
 
 
-def is_prefix(path):
+def is_prefix(path: str) -> bool:
     """Return True if the path is prefix"""
     return os.path.isdir(os.path.join(path, "drive_c")) \
         and os.path.exists(os.path.join(path, "user.reg"))
 
 
-def find_prefix(path):
+def find_prefix(path: str) -> Optional[str]:
     """Given an executable path, try to find a Wine prefix associated with it."""
     dir_path = path
     if not dir_path:
         logger.info("No path given, unable to guess prefix location")
-        return
+        return None
     dir_path = os.path.expanduser(dir_path)
     while dir_path != "/" and dir_path:
         dir_path = os.path.dirname(dir_path)
@@ -37,7 +38,7 @@ def find_prefix(path):
             prefix_path = os.path.join(dir_path, prefix_dir)
             if is_prefix(prefix_path):
                 return prefix_path
-
+    return None
 
 class WinePrefixManager:
     """Class to allow modification of Wine prefixes without the use of Wine"""
@@ -45,23 +46,23 @@ class WinePrefixManager:
     hkcu_prefix = "HKEY_CURRENT_USER"
     hklm_prefix = "HKEY_LOCAL_MACHINE"
 
-    def __init__(self, path):
+    def __init__(self, path: str) -> None:
         if not path:
             logger.warning("No path specified for Wine prefix")
         # expanduser() just in case- it should already be expanded.
         self.path = os.path.expanduser(path)
 
-    def get_user_dir(self, default_user=None):
+    def get_user_dir(self, default_user: Optional[str]=None) -> str:
         user = default_user or os.getenv("USER") or "lutrisuser"
         return os.path.join(self.path, "drive_c/users/", user)
 
     @property
-    def user_dir(self):
+    def user_dir(self) -> str:
         """Returns the directory that contains the current user's profile in the WINE prefix."""
         return self.get_user_dir()
 
     @property
-    def appdata_dir(self):
+    def appdata_dir(self) -> str:
         """Returns the app-data directory for the user; this depends on a registry key."""
         user_dir = self.get_user_dir()
         folder = self.get_registry_key(
@@ -78,7 +79,7 @@ class WinePrefixManager:
                 return os.path.join(user_dir, "Application Data")  # Windows XP
         return os.path.join(user_dir, "AppData/Roaming")  # Vista
 
-    def setup_defaults(self):
+    def setup_defaults(self) -> None:
         """Sets the defaults for newly created prefixes"""
         for dll, value in DEFAULT_DLL_OVERRIDES.items():
             self.override_dll(dll, value)
@@ -87,7 +88,7 @@ class WinePrefixManager:
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def create_user_symlinks(self):
+    def create_user_symlinks(self) -> None:
         """Link together user profiles created by Wine and Proton"""
         wine_user_dir = self.get_user_dir()
         proton_user_dir = self.get_user_dir(default_user="steamuser")
@@ -96,7 +97,7 @@ class WinePrefixManager:
         elif system.path_exists(proton_user_dir) and not system.path_exists(wine_user_dir, check_symlinks=True):
             system.create_symlink(proton_user_dir, wine_user_dir)
 
-    def get_registry_path(self, key):
+    def get_registry_path(self, key) -> str:
         """Matches registry keys to a registry file
 
         Currently, only HKEY_CURRENT_USER keys are supported.
@@ -107,7 +108,7 @@ class WinePrefixManager:
             return os.path.join(self.path, "system.reg")
         raise ValueError("Unsupported key '{}'".format(key))
 
-    def get_key_path(self, key):
+    def get_key_path(self, key: str) -> str:
         for prefix in (self.hkcu_prefix, self.hklm_prefix):
             if key.startswith(prefix):
                 return key[len(prefix) + 1:]
@@ -132,7 +133,7 @@ class WinePrefixManager:
         registry.clear_subkeys(self.get_key_path(key), subkeys)
         registry.save()
 
-    def override_dll(self, dll, mode):
+    def override_dll(self, dll, mode) -> None:
         key = self.hkcu_prefix + "/Software/Wine/DllOverrides"
         if mode.startswith("dis"):
             mode = ""
@@ -141,7 +142,7 @@ class WinePrefixManager:
             return
         self.set_registry_key(key, dll, mode)
 
-    def get_desktop_folders(self):
+    def get_desktop_folders(self) -> List[str]:
         """Return the list of desktop folder names loaded from the Windows registry"""
         desktop_folders = []
         for key in DESKTOP_KEYS:
@@ -155,7 +156,7 @@ class WinePrefixManager:
             desktop_folders.append(folder[folder.rfind("\\") + 1:])
         return desktop_folders or DEFAULT_DESKTOP_FOLDERS
 
-    def enable_desktop_integration_sandbox(self, desktop_dir):
+    def enable_desktop_integration_sandbox(self, desktop_dir: Optional[str] = None) -> None:
         """Replace WINE desktop folders with links to a sandbox directory."""
         user_dir = self.user_dir
         desktop_dir = os.path.expanduser(desktop_dir) if desktop_dir else user_dir
@@ -185,7 +186,7 @@ class WinePrefixManager:
 
             self._set_desktop_integration_assignment(desktop_dir)
 
-    def enable_desktop_disintegration(self):
+    def enable_desktop_disintegration(self) -> None:
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
 
@@ -210,7 +211,7 @@ class WinePrefixManager:
 
             self._set_desktop_integration_assignment(user_dir)
 
-    def restore_desktop_integration(self):
+    def restore_desktop_integration(self) -> None:
         """Replace WINE's desktop folders with links to the corresponding
         folders in your home directory."""
         user_dir = self.user_dir
@@ -235,7 +236,7 @@ class WinePrefixManager:
 
             self._set_desktop_integration_assignment(home_dir)
 
-    def _remove_desktop_folder(self, path, safe_path):
+    def _remove_desktop_folder(self, path: str, safe_path: str) -> None:
         """Removes the link or directory at 'path'; if it is a non-empty directory
         this will rename it to 'safe_path' instead of removing it entirely."""
         if os.path.islink(path):
@@ -247,7 +248,7 @@ class WinePrefixManager:
                 # We can't delete nonempty dir, so we rename as wine do.
                 os.rename(path, safe_path)
 
-    def _get_desktop_integration_assignment(self):
+    def _get_desktop_integration_assignment(self) -> str:
         try:
             # If the old tracking file is found, we'll read it, unlink it, and
             # save the setting in the new form.
@@ -263,10 +264,10 @@ class WinePrefixManager:
         settings = get_lutris_directory_settings(self.path)
         return settings.get("desktop_integration_directory", "")
 
-    def _set_desktop_integration_assignment(self, desktop_dir):
+    def _set_desktop_integration_assignment(self, desktop_dir: Optional[str]) -> None:
         set_lutris_directory_settings(self.path, {"desktop_integration_directory": desktop_dir or ""})
 
-    def set_crash_dialogs(self, enabled):
+    def set_crash_dialogs(self, enabled: bool) -> None:
         """Enable or diable Wine crash dialogs"""
         self.set_registry_key(
             self.hkcu_prefix + "/Software/Wine/WineDbg",
@@ -274,7 +275,7 @@ class WinePrefixManager:
             1 if enabled else 0,
         )
 
-    def set_virtual_desktop(self, enabled):
+    def set_virtual_desktop(self, enabled: bool) -> None:
         """Enable or disable wine virtual desktop.
         The Lutris virtual desktop is refered to as 'WineDesktop', in Wine the
         virtual desktop name is 'default'.
@@ -295,7 +296,7 @@ class WinePrefixManager:
         else:
             self.clear_registry_key(path)
 
-    def set_desktop_size(self, desktop_size):
+    def set_desktop_size(self, desktop_size) -> None:
         """Sets the desktop size if one is given but do not reset the key if
         one isn't.
         """
@@ -303,7 +304,7 @@ class WinePrefixManager:
         if desktop_size:
             self.set_registry_key(path, "WineDesktop", desktop_size)
 
-    def set_dpi(self, dpi):
+    def set_dpi(self, dpi) -> None:
         """Sets the DPI for WINE to use. None to remove the Lutris setting,
         and leave WINE in control."""
 
@@ -323,11 +324,11 @@ class WinePrefixManager:
         key_paths = [self.hkcu_prefix + "/Software/Wine/Fonts",
                      self.hkcu_prefix + "/Control Panel/Desktop"]
 
-        def assign_dpi(dpi):
+        def assign_dpi(dpi) -> None:
             for key_path in key_paths:
                 self.set_registry_key(key_path, "LogPixels", dpi)
 
-        def is_lutris_dpi_assigned():
+        def is_lutris_dpi_assigned() -> bool:
             """Check if Lutris assigned the DPI presently found in the registry."""
             try:
                 dpi_assigned = settings.get("dpi_assigned")
@@ -352,7 +353,7 @@ class WinePrefixManager:
                 assign_dpi(96)  # reset previous DPI
             set_lutris_directory_settings(self.path, {"dpi_assigned": ""})
 
-    def configure_joypads(self):
+    def configure_joypads(self) -> None:
         """Disables some joypad devices"""
         key = self.hkcu_prefix + "/Software/Wine/DirectInput/Joysticks"
         self.clear_registry_key(key)

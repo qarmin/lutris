@@ -2,6 +2,7 @@
 
 import os
 from ctypes import CDLL, POINTER, Structure, addressof, c_char_p, c_int, c_void_p, cast
+from typing import Optional
 
 from lutris.util.log import logger
 
@@ -78,7 +79,7 @@ def get_nvidia_glx_path():
     return os.path.realpath(libglx_nvidia_path)
 
 
-def get_nvidia_dll_path():
+def get_nvidia_dll_path() -> Optional[str]:
     """Return the path to the location of DLL files for use by Wine/Proton
     from the NVIDIA Linux driver.
     See https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/issues/71 for
@@ -86,7 +87,8 @@ def get_nvidia_dll_path():
     """
     libglx_path = get_nvidia_glx_path()
     if not libglx_path:
-        return
+        return None
     nvidia_wine_dir = os.path.join(os.path.dirname(libglx_path), "nvidia/wine")
     if os.path.exists(os.path.join(nvidia_wine_dir, "nvngx.dll")):
         return nvidia_wine_dir
+    return None

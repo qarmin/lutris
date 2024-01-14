@@ -290,7 +290,7 @@ def get_real_executable(windows_executable: str, working_dir: str) -> Tuple[
     return (windows_executable, [], working_dir)
 
 
-def esync_display_limit_warning(parent=None):
+def esync_display_limit_warning(parent=None) -> None:
     ErrorDialog(_(
         "Your limits are not set correctly."
         " Please increase them as described here:"
@@ -299,7 +299,7 @@ def esync_display_limit_warning(parent=None):
     ), parent=parent)
 
 
-def fsync_display_support_warning(parent=None):
+def fsync_display_support_warning(parent=None) -> None:
     ErrorDialog(_(
         "Your kernel is not patched for fsync."
         " Please get a patched kernel to use fsync."

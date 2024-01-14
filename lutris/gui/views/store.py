@@ -17,7 +17,7 @@ from . import (
 )
 
 
-def try_lower(value):
+def try_lower(value: str) -> str:
     try:
         out = value.lower()
     except AttributeError:
@@ -25,7 +25,7 @@ def try_lower(value):
     return out
 
 
-def sort_func(model, row1, row2, sort_col):
+def sort_func(model, row1, row2, sort_col) -> int:
     """Sorting function for the game store"""
     value1 = model.get_value(row1, sort_col)
     value2 = model.get_value(row2, sort_col)
